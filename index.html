@@ -1,161 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Design Option Template - Email Fix Test</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Option Selection Template</title>
+  <meta name="description" content="Advanced design option selection template with interactive bar graphs, UI/UX scoring, and cloud sync capabilities">
+  
+  <!-- Import Tailwind CSS v4.0 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Import React and ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Import TypeScript -->
+  <script src="https://unpkg.com/typescript@5.0.0/lib/typescript.js"></script>
+  
+  <!-- Global Styles -->
+  <link rel="stylesheet" href="./styles/globals.css">
+  
   <style>
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      padding: 40px; 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #fff;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 40px;
-      border-radius: 12px;
-      color: #333;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-    h1 {
-      color: #2c3e50;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .test-card {
-      background: #f8f9fa;
-      border: 2px solid #e9ecef;
-      border-radius: 8px;
-      padding: 25px;
-      margin: 20px 0;
-      transition: all 0.3s ease;
-    }
-    .test-card:hover {
-      border-color: #007bff;
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
-    }
-    .test-button {
-      background: linear-gradient(45deg, #007bff, #0056b3);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      width: 100%;
-      margin-top: 15px;
-    }
-    .test-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-    }
-    .status-indicator {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
+    /* Loading Animation */
+    .loading-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
       border-radius: 50%;
-      margin-right: 8px;
+      width: 40px;
+      height: 40px;
+      animation: spin 2s linear infinite;
+      margin: 20px auto;
     }
-    .status-online { background: #28a745; }
-    .status-checking { background: #ffc107; }
-    .status-offline { background: #dc3545; }
-    .info-text {
-      color: #6c757d;
-      font-size: 14px;
-      margin-top: 10px;
-      line-height: 1.5;
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-    .feature-list {
-      list-style: none;
+    
+    /* Ensure full height */
+    html, body, #root {
+      height: 100%;
+      margin: 0;
       padding: 0;
-    }
-    .feature-list li {
-      padding: 8px 0;
-      border-bottom: 1px solid #e9ecef;
-    }
-    .feature-list li:last-child {
-      border-bottom: none;
-    }
-    .feature-list li::before {
-      content: "✅ ";
-      margin-right: 8px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🔥 Design Option Template System</h1>
-    <h2>Email Confirmation Fix Verification</h2>
-    
-    <div class="test-card">
-      <h3>
-        <span id="server-status" class="status-indicator status-checking"></span>
-        Comprehensive Email Fix Test
-      </h3>
-      <p>Test the multi-layered email confirmation fix that resolves persistent "Email not confirmed" errors in CloudSync.</p>
-      
-      <div class="info-text">
-        <strong>Email Fix Strategies Implemented:</strong>
-        <ul class="feature-list" id="feature-list">
-        </ul>
-      </div>
-      
-      <button class="test-button" onclick="openEmailTest()">
-        🚀 Launch Email Fix Test
-      </button>
-      
-      <div class="info-text">
-        <strong>Test Process:</strong><br>
-        <div id="test-steps"></div>
-      </div>
-    </div>
-    
-    <div class="test-card">
-      <h3>📊 System Status</h3>
-      <p id="status-text">Checking server status...</p>
-      <div id="health-info" class="info-text"></div>
-    </div>
-    
-    <div class="test-card">
-      <h3>🛠️ Alternative Access</h3>
-      <p>If the launch button doesn't work, you can:</p>
-      <div class="info-text">
-        • Direct file: <code>execute-email-test.html</code><br>
-        • Browser console: Run <code>comprehensive-email-fix-test.js</code><br>
-        • Manual testing via design option template interface
-      </div>
+  <div id="root">
+    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column;">
+      <div class="loading-spinner"></div>
+      <p style="margin-top: 20px; color: #666;">Loading Design Option Selection Template...</p>
     </div>
   </div>
 
+  <!-- Module imports for React app -->
   <script type="module">
-    import { updateServerStatus, openEmailTest, EMAIL_FIX_FEATURES, TEST_PROCESS_STEPS } from './test-helpers/ui-utils.js';
+    // Import and render the main App component
+    import App from './App.tsx';
     
-    // Populate feature list
-    const featureList = document.getElementById('feature-list');
-    EMAIL_FIX_FEATURES.forEach(feature => {
-      const li = document.createElement('li');
-      li.textContent = feature;
-      featureList.appendChild(li);
-    });
-    
-    // Populate test steps
-    const testSteps = document.getElementById('test-steps');
-    TEST_PROCESS_STEPS.forEach((step, index) => {
-      testSteps.innerHTML += `${index + 1}. ${step}<br>`;
-    });
-    
-    // Make functions globally available
-    window.openEmailTest = openEmailTest;
-    
-    // Run health check when page loads
-    updateServerStatus();
+    // Render the app
+    const container = document.getElementById('root');
+    if (container) {
+      ReactDOM.render(React.createElement(App), container);
+    }
   </script>
 </body>
 </html>

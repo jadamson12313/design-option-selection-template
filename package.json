@@ -17,11 +17,7 @@
     "supabase-login": "supabase login",
     "supabase-status": "supabase status",
     "check-deployment": "echo 'Testing function deployment...' && curl -X GET \"https://$npm_config_project_id.supabase.co/functions/v1/make-server-0b7c7173/health\"",
-    "quick-redeploy": "supabase functions deploy make-server-0b7c7173 --no-verify-jwt && echo 'Deployment complete! Test your endpoints now.'",
-    "test": "node test-runner.js",
-    "test-auth": "node test-full-auth-flow.js",
-    "test-cloud-sync": "node test-cloud-sync-complete.js",
-    "verify": "node final-verification.js"
+    "quick-redeploy": "supabase functions deploy make-server-0b7c7173 --no-verify-jwt && echo 'Deployment complete! Test your endpoints now.'"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -53,7 +49,7 @@
     "@radix-ui/react-scroll-area": "^1.0.5",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-separator": "^1.0.3",
-    "@radix-ui/react-sheet": "^1.0.5",
+    "@radix-ui/react-sheet": "^1.0.4",
     "@radix-ui/react-slider": "^1.1.2",
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-tabs": "^1.0.4",

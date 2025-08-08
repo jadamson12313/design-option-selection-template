@@ -16,9 +16,13 @@ fi
 echo "Downloading Supabase CLI from $SUPABASE_URL"
 wget -O supabase.tar.gz "$SUPABASE_URL"
 
+# Always remove old extracted binary before extracting new one
+rm -f supabase
+
 tar -xzf supabase.tar.gz
 
 mkdir -p ~/.local/bin
+rm -f ~/.local/bin/supabase  # Overwrite any old binary in ~/.local/bin
 mv supabase ~/.local/bin/
 chmod +x ~/.local/bin/supabase
 

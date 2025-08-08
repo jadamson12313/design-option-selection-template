@@ -9,15 +9,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "serve": "npx serve . -p 3000",
-    "deploy-functions": "supabase functions deploy make-server-0b7c7173 --no-verify-jwt",
-    "deploy-nuclear": "supabase functions deploy make-server-0b7c7173 --no-verify-jwt",
-    "deploy-server": "supabase functions deploy server --no-verify-jwt",
-    "deploy-all": "supabase functions deploy make-server-0b7c7173 --no-verify-jwt && supabase functions deploy server --no-verify-jwt",
+    "deploy-functions": "supabase functions deploy working-server-2025 --no-verify-jwt --debug",
+    "deploy-server": "supabase functions deploy working-server-2025 --no-verify-jwt --debug",
     "check-functions": "supabase functions list",
     "supabase-login": "supabase login",
     "supabase-status": "supabase status",
-    "check-deployment": "echo 'Testing function deployment...' && curl -X GET \"https://$npm_config_project_id.supabase.co/functions/v1/make-server-0b7c7173/health\"",
-    "quick-redeploy": "supabase functions deploy make-server-0b7c7173 --no-verify-jwt && echo 'Deployment complete! Test your endpoints now.'"
+    "quick-redeploy": "supabase functions deploy working-server-2025 --no-verify-jwt --debug"
   },
   "dependencies": {
     "react": "^18.2.0",

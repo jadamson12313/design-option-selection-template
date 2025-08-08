@@ -9,10 +9,9 @@ import { Button } from './components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from './components/ui/alert-dialog';
 import { toast, Toaster } from 'sonner@2.0.3';
-import { Copy, Code, ChevronDown, Plus, Trash2, Users, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Copy, Code, ChevronDown, Plus, Trash2, Users, RefreshCw } from 'lucide-react';
 import { Badge } from './components/ui/badge';
 import { cloudSync, User } from './services/cloudSync';
-import { enhancedCloudSync, SyncState } from './services/enhancedCloudSync';
 import { CollaborationPanel } from './components/CollaborationPanel';
 
 interface FeaturePage {
@@ -61,13 +60,13 @@ interface AppState {
   selectedTeam: string | null;
   selectedApp: string | null;
   selectedState: string | null;
-  version?: string; // Add version tracking for future migrations
-  lastSaved?: number; // Add timestamp for debugging save issues
+  version?: string;
+  lastSaved?: number;
 }
 
 const STORAGE_KEY = 'design-option-app-state';
 const STORAGE_BACKUP_KEY = 'design-option-app-state-backup';
-const AUTOSAVE_DELAY = 500; // milliseconds
+const AUTOSAVE_DELAY = 500;
 const CURRENT_DATA_VERSION = '1.0';
 
 export default function App() {
@@ -88,66 +87,33 @@ export default function App() {
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [pageToDelete, setPageToDelete] = useState<string | null>(null);
-
-
-    // Enhanced collaboration state
-  const [syncState, setSyncState] = useState<SyncState>(enhancedCloudSync.getSyncState());
   const [showCollaboration, setShowCollaboration] = useState(false);
-  const [lastDataChange, setLastDataChange] = useState(Date.now());
 
   // Available options
   const availableApps = ['CAD', 'GO', 'Mapping', 'MDM', 'Mobile', 'Ops', 'Sched', 'SP'];
   const availableTeams = ['CAD Project Blue', 'Core CAD', 'MDM Suite Integration', 'Red Team', 'Spherical Cows'].sort();
   const availableStates = ['In Concept', 'In Design', 'In Development', 'Blocked', 'Released'];
 
-  // Initialize app and enhanced cloud sync
+  // Initialize app and cloud sync
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Load from local storage first
         loadFromStorage();
-        
-        // Initialize original cloud sync
         const currentUser = await cloudSync.getCurrentUser();
         setUser(currentUser);
-        
-        // Set up enhanced cloud sync listeners
-        enhancedCloudSync.onSyncStateChangeCallback(setSyncState);
-        enhancedCloudSync.onDataChangeCallback((data) => {
-          if (data && Object.keys(data).length > 0) {
-            setAppState(data as AppState);
-            setLastDataChange(Date.now());
-          }
-        });
 
-        // Refresh enhanced sync auth state
-        enhancedCloudSync.refreshAuthState();
-
-        // Load data from enhanced sync
         if (currentUser && currentUser.email) {
-          console.log('CloudSync: Loading data from cloud for authenticated user:', currentUser.email);
           try {
             const cloudData = await cloudSync.syncFromCloud('default-project');
             if (cloudData && Object.keys(cloudData).length > 0) {
-              console.log('Loaded data from cloud:', Object.keys(cloudData));
               setAppState(cloudData as AppState);
-              
-              // Update enhanced sync cache
-              enhancedCloudSync.updateData('appState', cloudData);
             }
           } catch (error) {
             console.error('Cloud sync error during initialization:', error);
-            // Handle different types of sync errors appropriately
             if (error.message?.includes('sign in again') || error.message?.includes('User not found')) {
-              // Session expired, clear user state
               setUser(null);
-              console.log('Session expired during initialization, signed out user');
-            } else {
-              console.warn('Cloud sync not available during initialization:', error.message);
             }
           }
-        } else {
-          console.log('CloudSync: Skipping cloud data load - user not authenticated or missing email');
         }
       } catch (error) {
         console.error('Initialization failed:', error);
@@ -157,14 +123,9 @@ export default function App() {
     };
 
     initialize();
-
-    // Cleanup on unmount
-    return () => {
-      enhancedCloudSync.destroy();
-    };
   }, []);
 
-  // Enhanced auto-save functionality with conflict detection
+  // Auto-save functionality
   const debouncedSave = useCallback(
     (() => {
       let timeoutId: NodeJS.Timeout;
@@ -172,47 +133,24 @@ export default function App() {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(async () => {
           try {
-            // Validate data before saving
             const isValid = validateAppState(state);
             if (!isValid) {
               console.warn('Invalid app state detected, skipping save');
               return;
             }
 
-            // Save to local storage immediately
             saveToStorage(state);
             
-            // Update enhanced sync cache
-            enhancedCloudSync.updateData('appState', state);
-            
-            // Save to original cloud sync using proper method
             if (user && user.email) {
-              console.log('CloudSync: Auto-saving for user:', user.email);
               cloudSync.syncToCloud(state, 'default-project').catch((error) => {
                 console.error('Cloud sync error during auto-save:', error);
-                // Handle authentication errors by clearing user state
                 if (error.message?.includes('sign in again') || error.message?.includes('User not found')) {
                   setUser(null);
-                  console.log('Session expired during auto-save, user signed out');
-                } else {
-                  console.error('Cloud sync error:', error);
                 }
-              });
-            } else {
-              console.log('CloudSync: Skipping auto-save - user not authenticated or missing email');
-            }
-
-            // Record operation for enhanced sync
-            if (enhancedCloudSync.isAuthenticated()) {
-              await enhancedCloudSync.recordOperation({
-                operation: 'update',
-                entityType: 'feature',
-                entityId: 'app-state',
-                newValue: state
               });
             }
           } catch (error) {
-            console.error('Enhanced auto-save failed:', error);
+            console.error('Auto-save failed:', error);
           }
         }, AUTOSAVE_DELAY);
       };
@@ -220,7 +158,6 @@ export default function App() {
     [user]
   );
 
-  // Save whenever appState changes
   useEffect(() => {
     if (!isInitializing) {
       const stateWithTimestamp = { ...appState, lastSaved: Date.now() };
@@ -230,12 +167,10 @@ export default function App() {
 
   const saveToStorage = (state: AppState) => {
     try {
-      // Create backup of current state
       const currentState = localStorage.getItem(STORAGE_KEY);
       if (currentState) {
         localStorage.setItem(STORAGE_BACKUP_KEY, currentState);
       }
-      
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (error) {
       console.error('Failed to save to localStorage:', error);
@@ -249,27 +184,22 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved) as AppState;
         
-        // Validate and migrate data if needed
         if (parsed.version !== CURRENT_DATA_VERSION) {
           console.log('Migrating data from version', parsed.version, 'to', CURRENT_DATA_VERSION);
-          // Add migration logic here if needed
           parsed.version = CURRENT_DATA_VERSION;
         }
         
         setAppState(parsed);
         
-        // If no current page, create initial feature page
         if (parsed.pages.length === 0) {
           createInitialFeaturePage(parsed);
         }
       } else {
-        // No saved state, create initial feature page
         createInitialFeaturePage(appState);
       }
     } catch (error) {
       console.error('Failed to load from localStorage:', error);
       
-      // Try to load backup
       try {
         const backup = localStorage.getItem(STORAGE_BACKUP_KEY);
         if (backup) {
@@ -282,7 +212,6 @@ export default function App() {
         console.error('Backup also corrupted:', backupError);
       }
       
-      // Create fresh state
       createInitialFeaturePage(appState);
       toast.error('Failed to load saved data, starting fresh');
     }
@@ -313,9 +242,6 @@ export default function App() {
   const currentFeaturePage = currentPage?.type === 'feature' ? currentPage : 
     appState.pages.find(page => page.id === (currentPage as VariantPage | AgreedSolutionPage)?.parentFeatureId) as FeaturePage | undefined;
 
-
-
-  // Validation function
   const validateAppState = (state: AppState): boolean => {
     try {
       return (
@@ -343,27 +269,11 @@ export default function App() {
       state: availableStates[0]
     };
 
-    // Validate new feature
-    if (!enhancedCloudSync.validateData('feature', newFeaturePage)) {
-      console.error('Invalid feature data');
-      return;
-    }
-
     setAppState(prev => ({
       ...prev,
       pages: [...prev.pages, newFeaturePage],
       currentPageId: newFeatureId
     }));
-
-    // Record operation for collaboration
-    if (enhancedCloudSync.isAuthenticated()) {
-      await enhancedCloudSync.recordOperation({
-        operation: 'create',
-        entityType: 'feature',
-        entityId: newFeatureId,
-        newValue: newFeaturePage
-      });
-    }
   };
 
   const addVariant = async (parentFeatureId: string) => {
@@ -385,12 +295,6 @@ export default function App() {
       image: null
     };
 
-    // Validate variant data
-    if (!enhancedCloudSync.validateData('variant', variantData)) {
-      console.error('Invalid variant data');
-      return;
-    }
-
     const newVariantPage: VariantPage = {
       id: newVariantId,
       type: 'variant',
@@ -403,16 +307,6 @@ export default function App() {
       pages: [...prev.pages, newVariantPage],
       currentPageId: newVariantId
     }));
-
-    // Record operation for collaboration
-    if (enhancedCloudSync.isAuthenticated()) {
-      await enhancedCloudSync.recordOperation({
-        operation: 'create',
-        entityType: 'variant',
-        entityId: newVariantId,
-        newValue: newVariantPage
-      });
-    }
   };
 
   const addAgreedSolution = (parentFeatureId: string) => {
@@ -442,7 +336,6 @@ export default function App() {
 
     let pagesToRemove = [pageId];
     
-    // If deleting a feature, also delete its variants and agreed solution
     if (pageToDelete.type === 'feature') {
       const childPages = appState.pages.filter(page => 
         (page.type === 'variant' || page.type === 'agreed-solution') && 
@@ -496,15 +389,6 @@ export default function App() {
 
     const updatedPage = { ...currentPage, ...updates };
 
-    // Validate updated data
-    const entityType = currentPage.type;
-    const dataToValidate = entityType === 'variant' ? (updatedPage as VariantPage).data : updatedPage;
-    
-    if (!enhancedCloudSync.validateData(entityType, dataToValidate)) {
-      console.error('Invalid update data');
-      return;
-    }
-
     setAppState(prev => ({
       ...prev,
       pages: prev.pages.map(page => 
@@ -513,17 +397,6 @@ export default function App() {
           : page
       )
     }));
-
-    // Record operation for collaboration
-    if (enhancedCloudSync.isAuthenticated()) {
-      await enhancedCloudSync.recordOperation({
-        operation: 'update',
-        entityType: currentPage.type as any,
-        entityId: currentPage.id,
-        oldValue: currentPage,
-        newValue: updatedPage
-      });
-    }
   };
 
   const copyPageStructure = async () => {
@@ -639,7 +512,6 @@ export default function App() {
     <div className="min-h-screen bg-background flex">
       <Toaster />
       
-      {/* Left Sidebar Navigation */}
       <NavigationSidebar
         appState={appState}
         setAppState={setAppState}
@@ -653,9 +525,7 @@ export default function App() {
         onDeletePage={confirmDelete}
       />
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
         <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
           <div className="px-6 py-3">
             <div className="flex items-center justify-between">
@@ -665,26 +535,6 @@ export default function App() {
               </div>
               
               <div className="flex items-center gap-2">
-                {/* Sync Status Indicator */}
-                {syncState.isSyncing && (
-                  <div className="flex items-center gap-2 text-primary">
-                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                    <span className="text-xs">Syncing...</span>
-                  </div>
-                )}
-                
-                {syncState.conflictCount > 0 && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setShowCollaboration(true)}
-                  >
-                    <AlertTriangle className="w-4 h-4 mr-1" />
-                    {syncState.conflictCount} Conflicts
-                  </Button>
-                )}
-
-                {/* Collaboration Button */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -692,14 +542,8 @@ export default function App() {
                 >
                   <Users className="w-4 h-4 mr-2" />
                   Team
-                  {syncState.pendingOperations.length > 0 && (
-                    <Badge variant="secondary" className="ml-2">
-                      {syncState.pendingOperations.length}
-                    </Badge>
-                  )}
                 </Button>
 
-                {/* Actions dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -713,10 +557,6 @@ export default function App() {
                       <Copy className="w-4 h-4 mr-2" />
                       Copy Structure
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => enhancedCloudSync.forceSync()}>
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Force Sync
-                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -724,20 +564,17 @@ export default function App() {
           </div>
         </header>
 
-        {/* Main content */}
         <main className="flex-1 overflow-hidden">
           {renderCurrentPage()}
         </main>
       </div>
 
-      {/* Collaboration Panel */}
       <CollaborationPanel 
         projectId="default-project"
         isOpen={showCollaboration}
         onClose={() => setShowCollaboration(false)}
       />
 
-      {/* Delete confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -760,8 +597,6 @@ export default function App() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-
     </div>
   );
 }

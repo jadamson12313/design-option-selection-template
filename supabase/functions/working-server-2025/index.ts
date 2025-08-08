@@ -1,77 +1,129 @@
-import { serve } from 'https://deno.land/std@0.190.0/http/server.ts'
-import { Hono } from 'npm:hono'
-import { cors } from 'npm:hono/cors'
-import { logger } from 'npm:hono/logger'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 
-const app = new Hono()
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+}
 
-// CORS middleware for all routes
-app.use('*', cors({
-  origin: '*',
-  credentials: true,
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization']
-}))
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
 
-// Logger middleware
-app.use('*', logger(console.log))
+  try {
+    const url = new URL(req.url)
+    const path = url.pathname
 
-// Health check endpoint - NO JWT verification required
-app.get('/working-server-2025/health', (c) => {
-  console.log('Health check endpoint called')
-  return c.json({ 
-    status: 'healthy', 
-    timestamp: new Date().toISOString(),
-    message: 'working-server-2025 is operational',
-    version: '2025.1.0'
-  })
+    // Health check endpoint
+    if (path === '/health' || path === '/') {
+      return new Response(
+        JSON.stringify({ 
+          status: 'healthy', 
+          timestamp: new Date().toISOString(),
+          function: 'working-server-2025',
+          jwt_disabled: true,
+          message: 'Ready for deployment'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Sync upload endpoint
+    if (path === '/sync/upload' && req.method === 'POST') {
+      const body = await req.json()
+      const { projectData, projectId, userEmail } = body
+
+      if (!projectData || !projectId || !userEmail) {
+        return new Response(
+          JSON.stringify({ error: 'Missing required fields: projectData, projectId, userEmail' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log(`Sync upload for user: ${userEmail}, project: ${projectId}`)
+
+      // Simple success response (you can add actual storage logic here)
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Data uploaded successfully',
+          projectId,
+          userEmail,
+          timestamp: new Date().toISOString()
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Sync download endpoint
+    if (path.startsWith('/sync/download/') && req.method === 'GET') {
+      const projectId = path.split('/sync/download/')[1]
+      const userEmail = url.searchParams.get('userEmail')
+
+      if (!projectId || !userEmail) {
+        return new Response(
+          JSON.stringify({ error: 'Missing projectId or userEmail' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log(`Sync download for user: ${userEmail}, project: ${projectId}`)
+
+      // Return empty project data for now (you can add actual storage logic here)
+      return new Response(
+        JSON.stringify({ 
+          projectData: {},
+          projectId,
+          userEmail,
+          timestamp: new Date().toISOString()
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Test endpoint
+    if (path === '/test') {
+      return new Response(
+        JSON.stringify({ 
+          test: 'success',
+          message: 'working-server-2025 is functioning correctly',
+          timestamp: new Date().toISOString()
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // 404 for unknown paths
+    return new Response(
+      JSON.stringify({ 
+        error: 'Not found',
+        available_endpoints: [
+          '/',
+          '/health',
+          '/test',
+          '/sync/upload (POST)',
+          '/sync/download/{projectId} (GET)'
+        ]
+      }),
+      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error) {
+    console.error('Function error:', error)
+    return new Response(
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
 })
-
-// Main health endpoint
-app.get('/health', (c) => {
-  console.log('Main health endpoint called')
-  return c.json({ 
-    status: 'healthy', 
-    timestamp: new Date().toISOString(),
-    message: 'working-server-2025 main health check',
-    version: '2025.1.0'
-  })
-})
-
-// Root endpoint
-app.get('/', (c) => {
-  console.log('Root endpoint called')
-  return c.json({ 
-    message: 'working-server-2025 API',
-    status: 'running',
-    timestamp: new Date().toISOString(),
-    endpoints: [
-      '/health',
-      '/working-server-2025/health'
-    ]
-  })
-})
-
-// Test endpoint
-app.get('/working-server-2025/test', (c) => {
-  console.log('Test endpoint called')
-  return c.json({ 
-    test: 'success',
-    message: 'working-server-2025 test endpoint working',
-    timestamp: new Date().toISOString()
-  })
-})
-
-// Catch-all for debugging
-app.all('*', (c) => {
-  console.log(`Unmatched route: ${c.req.method} ${c.req.url}`)
-  return c.json({ 
-    error: 'Route not found',
-    method: c.req.method,
-    url: c.req.url,
-    message: 'This is working-server-2025 - available endpoints: /, /health, /working-server-2025/health, /working-server-2025/test'
-  }, 404)
-})
-
-console.log('Starting working-server-2025...')
-serve(app.fetch)

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Design Option Template - Email Fix Test</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      padding: 40px; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 40px;
+      border-radius: 12px;
+      color: #333;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .test-card {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 25px;
+      margin: 20px 0;
+      transition: all 0.3s ease;
+    }
+    .test-card:hover {
+      border-color: #007bff;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+    }
+    .test-button {
+      background: linear-gradient(45deg, #007bff, #0056b3);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 15px;
+    }
+    .test-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-online { background: #28a745; }
+    .status-checking { background: #ffc107; }
+    .status-offline { background: #dc3545; }
+    .info-text {
+      color: #6c757d;
+      font-size: 14px;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+    .feature-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+    .feature-list li::before {
+      content: "✅ ";
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔥 Design Option Template System</h1>
+    <h2>Email Confirmation Fix Verification</h2>
+    
+    <div class="test-card">
+      <h3>
+        <span id="server-status" class="status-indicator status-checking"></span>
+        Comprehensive Email Fix Test
+      </h3>
+      <p>Test the multi-layered email confirmation fix that resolves persistent "Email not confirmed" errors in CloudSync.</p>
+      
+      <div class="info-text">
+        <strong>Email Fix Strategies Implemented:</strong>
+        <ul class="feature-list" id="feature-list">
+        </ul>
+      </div>
+      
+      <button class="test-button" onclick="openEmailTest()">
+        🚀 Launch Email Fix Test
+      </button>
+      
+      <div class="info-text">
+        <strong>Test Process:</strong><br>
+        <div id="test-steps"></div>
+      </div>
+    </div>
+    
+    <div class="test-card">
+      <h3>📊 System Status</h3>
+      <p id="status-text">Checking server status...</p>
+      <div id="health-info" class="info-text"></div>
+    </div>
+    
+    <div class="test-card">
+      <h3>🛠️ Alternative Access</h3>
+      <p>If the launch button doesn't work, you can:</p>
+      <div class="info-text">
+        • Direct file: <code>execute-email-test.html</code><br>
+        • Browser console: Run <code>comprehensive-email-fix-test.js</code><br>
+        • Manual testing via design option template interface
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { updateServerStatus, openEmailTest, EMAIL_FIX_FEATURES, TEST_PROCESS_STEPS } from './test-helpers/ui-utils.js';
+    
+    // Populate feature list
+    const featureList = document.getElementById('feature-list');
+    EMAIL_FIX_FEATURES.forEach(feature => {
+      const li = document.createElement('li');
+      li.textContent = feature;
+      featureList.appendChild(li);
+    });
+    
+    // Populate test steps
+    const testSteps = document.getElementById('test-steps');
+    TEST_PROCESS_STEPS.forEach((step, index) => {
+      testSteps.innerHTML += `${index + 1}. ${step}<br>`;
+    });
+    
+    // Make functions globally available
+    window.openEmailTest = openEmailTest;
+    
+    // Run health check when page loads
+    updateServerStatus();
+  </script>
+</body>
+</html>
